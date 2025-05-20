@@ -1,0 +1,1 @@
+The Workday Micro-Meditations app features a beautiful, calming interface with subtle animations to enhance the experience. You'll be able to choose from a few short guided meditations perfect for a quick mental reset during your workday.
