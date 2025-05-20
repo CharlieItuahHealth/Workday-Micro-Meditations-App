@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workday Micro-Meditations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .breathing-circle {
+            animation: breathe 5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.5), 0 0 40px rgba(52, 211, 153, 0.3);
+        }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.5s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* slate-300 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* slate-500 */
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-gray-800 text-slate-100 flex flex-col items-center justify-center min-h-screen p-4 selection:bg-emerald-500 selection:text-white">
+
+    <div id="app-container" class="w-full max-w-md mx-auto transition-all duration-500 ease-in-out">
+
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-emerald-400">Micro Meditations</h1>
+            <p class="text-slate-400 mt-2">Find your calm amidst the chaos.</p>
+        </header>
+
+        <div id="meditation-selection-screen" class="space-y-4">
+            </div>
+
+        <div id="meditation-player-screen" class="hidden flex flex-col items-center p-6 rounded-xl shadow-2xl glassmorphism">
+            <h2 id="player-title" class="text-3xl font-semibold text-emerald-300 mb-6 text-center"></h2>
+            
+            <div class="relative w-48 h-48 mb-8">
+                <div class="absolute inset-0 border-4 border-emerald-500/30 rounded-full"></div>
+                <div id="breathing-circle" class="w-full h-full rounded-full bg-emerald-500 flex items-center justify-center breathing-circle">
+                    <span id="timer-display" class="text-4xl font-bold text-slate-900"></span>
+                </div>
+            </div>
+
+            <p id="step-instruction" class="text-lg text-slate-200 mb-8 text-center min-h-[6em]"></p>
+            
+            <div id="progress-bar-container" class="w-full h-2 bg-slate-700 rounded-full mb-6 overflow-hidden">
+                <div id="progress-bar" class="h-full bg-emerald-400 transition-all duration-1000 ease-linear"></div>
+            </div>
+
+            <div class="flex space-x-4">
+                <button id="play-pause-button" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75 flex items-center space-x-2">
+                    </button>
+                <button id="stop-button" class="bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-opacity-75 flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                    <span>Stop</span>
+                </button>
+            </div>
+            <button id="back-to-list-button" class="hidden mt-6 text-emerald-400 hover:text-emerald-300 transition-colors duration-200 underline">Back to meditations</button>
+        </div>
+
+        <div id="completion-message" class="hidden text-center p-6 rounded-xl shadow-2xl glassmorphism">
+            <h2 class="text-3xl font-semibold text-emerald-300 mb-4">Well Done!</h2>
+            <p class="text-slate-200 mb-6">You've completed your micro-meditation. Carry this peace with you.</p>
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-6 text-emerald-400 animate-pulse"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+            <button id="finish-button" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">Back to List</button>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM Elements
+        const selectionScreen = document.getElementById('meditation-selection-screen');
+        const playerScreen = document.getElementById('meditation-player-screen');
+        const completionScreen = document.getElementById('completion-message');
+        
+        const playerTitle = document.getElementById('player-title');
+        const timerDisplay = document.getElementById('timer-display');
+        const stepInstruction = document.getElementById('step-instruction');
+        const playPauseButton = document.getElementById('play-pause-button');
+        const stopButton = document.getElementById('stop-button');
+        const backToListButton = document.getElementById('back-to-list-button'); // Not used in current flow, but kept for potential future use
+        const finishButton = document.getElementById('finish-button');
+        const progressBar = document.getElementById('progress-bar');
+        const appContainer = document.getElementById('app-container');
+
+        // Lucide Icons (SVG strings)
+        const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> <span>Play</span>`;
+        const pauseIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> <span>Pause</span>`;
+
+        // Meditation Data
+        const meditations = [
+            {
+                id: 'mindful-minute',
+                title: 'Mindful Minute',
+                description: 'A quick 60-second reset to focus on your breath and center yourself.',
+                totalDuration: 60,
+                steps: [
+                    { text: "Find a comfortable posture. Gently close your eyes or soften your gaze.", duration: 10 },
+                    { text: "Bring your attention to your breath. Notice its natural rhythm.", duration: 20 },
+                    { text: "Follow each inhale and exhale. If your mind wanders, gently guide it back.", duration: 20 },
+                    { text: "Become aware of your surroundings. Gently open your eyes.", duration: 10 }
+                ],
+                sound: 'C4'
+            },
+            {
+                id: 'stress-release',
+                title: 'Stress Release Breath',
+                description: 'A 90-second exercise to calm your nervous system and release tension.',
+                totalDuration: 90,
+                steps: [
+                    { text: "Sit comfortably, spine straight. Close your eyes.", duration: 10 },
+                    { text: "Inhale deeply through your nose, feeling your abdomen expand. Hold for a moment.", duration: 20 },
+                    { text: "Exhale slowly through your mouth, releasing any tension.", duration: 25 },
+                    { text: "Repeat this mindful breathing. Inhale calm, exhale stress.", duration: 25 },
+                    { text: "Notice how you feel. Gently open your eyes when ready.", duration: 10 }
+                ],
+                sound: 'E4'
+            },
+            {
+                id: 'quick-body-scan',
+                title: 'Quick Body Scan',
+                description: 'A 2-minute scan to connect with your body and release localized tension.',
+                totalDuration: 120,
+                steps: [
+                    { text: "Settle into a comfortable position. Close your eyes.", duration: 10 },
+                    { text: "Bring your awareness to your feet. Notice any sensations without judgment.", duration: 20 },
+                    { text: "Move your attention up to your legs, hips, and torso. Soften any tension.", duration: 30 },
+                    { text: "Scan your arms, hands, shoulders, neck, and head.", duration: 30 },
+                    { text: "Feel your whole body, breathing gently. Rest in this awareness.", duration: 20 },
+                    { text: "Wiggle your fingers and toes. Slowly open your eyes.", duration: 10 }
+                ],
+                sound: 'G4'
+            },
+            {
+                id: 'gratitude-moment',
+                title: 'Gratitude Moment',
+                description: 'A 75-second reflection to cultivate positivity and appreciation.',
+                totalDuration: 75,
+                steps: [
+                    { text: "Find a quiet space and sit comfortably. Close your eyes.", duration: 10 },
+                    { text: "Think of one thing you are grateful for right now. It can be small or big.", duration: 20 },
+                    { text: "Hold this feeling of gratitude. Let it fill you.", duration: 20 },
+                    { text: "Think of one person you appreciate. Send them good wishes.", duration: 15 },
+                    { text: "Bring your awareness back to the present. Open your eyes.", duration: 10 }
+                ],
+                sound: 'A4'
+            }
+        ];
+
+        // App State
+        let currentMeditation = null;
+        let currentStepIndex = 0;
+        let timeLeftInStep = 0;
+        let totalTimeElapsed = 0;
+        let timerId = null;
+        let isPaused = false;
+        let synth; // Tone.js synth
+
+        // Initialize Tone.js synth
+        // It's good practice to start Tone.js audio context on a user gesture.
+        // However, for simplicity in this environment, we'll initialize it directly.
+        // In a real web app, you'd often gate this behind a "Start" button or similar interaction.
+        try {
+            synth = new Tone.Synth().toDestination();
+        } catch (e) {
+            console.warn("Tone.js could not be initialized. Audio cues might not work.", e);
+            // Provide a fallback if Tone.js fails
+            synth = {
+                triggerAttackRelease: () => {} // No-op function
+            };
+        }
+        
+
+        // Functions
+        function renderSelectionScreen() {
+            selectionScreen.innerHTML = ''; // Clear previous cards
+            meditations.forEach(med => {
+                const card = document.createElement('div');
+                card.className = 'p-6 rounded-xl shadow-lg cursor-pointer transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105 glassmorphism border border-slate-700 hover:border-emerald-500/50';
+                card.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-emerald-400 mb-2">${med.title}</h3>
+                    <p class="text-slate-300 text-sm mb-3">${med.description}</p>
+                    <p class="text-xs text-slate-500">Duration: ${Math.floor(med.totalDuration / 60)} min ${med.totalDuration % 60} sec</p>
+                `;
+                card.addEventListener('click', () => selectMeditation(med.id));
+                selectionScreen.appendChild(card);
+            });
+            selectionScreen.classList.remove('hidden', 'fade-out');
+            selectionScreen.classList.add('fade-in');
+            playerScreen.classList.add('hidden');
+            completionScreen.classList.add('hidden');
+            appContainer.classList.remove('max-w-md'); // Allow selection screen to be wider if needed
+            appContainer.classList.add('max-w-2xl');
+        }
+
+        function selectMeditation(id) {
+            currentMeditation = meditations.find(med => med.id === id);
+            if (!currentMeditation) return;
+
+            currentStepIndex = 0;
+            totalTimeElapsed = 0;
+            isPaused = false;
+            
+            playerTitle.textContent = currentMeditation.title;
+            updateProgressBar();
+            
+            selectionScreen.classList.add('fade-out');
+            setTimeout(() => {
+                selectionScreen.classList.add('hidden');
+                playerScreen.classList.remove('hidden');
+                playerScreen.classList.add('fade-in');
+                appContainer.classList.remove('max-w-2xl');
+                appContainer.classList.add('max-w-md'); // Player screen is narrower
+                startStep();
+            }, 500); // Match fade-out duration
+        }
+
+        function startStep() {
+            if (currentStepIndex >= currentMeditation.steps.length) {
+                endMeditation();
+                return;
+            }
+
+            const step = currentMeditation.steps[currentStepIndex];
+            stepInstruction.textContent = step.text;
+            timeLeftInStep = step.duration;
+            
+            updateTimerDisplay();
+            playPauseButton.innerHTML = pauseIcon;
+            isPaused = false;
+
+            if (timerId) clearInterval(timerId);
+            timerId = setInterval(tick, 1000);
+            
+            // Play a gentle sound at the beginning of important steps (e.g., first step)
+            if (currentStepIndex === 0 && synth) {
+                 try {
+                    Tone.start().then(() => { // Ensure AudioContext is started
+                        synth.triggerAttackRelease(currentMeditation.sound || "C4", "8n", Tone.now());
+                    });
+                } catch(e) { console.warn("Tone.js sound play failed:", e); }
+            }
+        }
+
+        function tick() {
+            if (isPaused) return;
+
+            timeLeftInStep--;
+            totalTimeElapsed++;
+            updateTimerDisplay();
+            updateProgressBar();
+
+            if (timeLeftInStep <= 0) {
+                currentStepIndex++;
+                if (currentStepIndex < currentMeditation.steps.length && synth) {
+                    // Optional: sound cue between steps
+                    // synth.triggerAttackRelease("C5", "16n", Tone.now() + 0.1); 
+                }
+                startStep(); // This will also handle ending the meditation
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeftInStep / 60);
+            const seconds = timeLeftInStep % 60;
+            timerDisplay.textContent = `${String(minutes).padStart(1, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+        
+        function updateProgressBar() {
+            const progressPercentage = (totalTimeElapsed / currentMeditation.totalDuration) * 100;
+            progressBar.style.width = `${Math.min(progressPercentage, 100)}%`;
+        }
+
+        function togglePlayPause() {
+            if (!currentMeditation) return; // No meditation selected/active
+
+            // Ensure Tone.js AudioContext is started by user gesture
+            if (Tone.context.state !== 'running') {
+                Tone.start().catch(e => console.warn("AudioContext start failed:", e));
+            }
+
+            isPaused = !isPaused;
+            if (isPaused) {
+                playPauseButton.innerHTML = playIcon;
+                if (timerId) clearInterval(timerId);
+            } else {
+                playPauseButton.innerHTML = pauseIcon;
+                // If resuming from a fully stopped state (e.g., after stop button then play again on same meditation)
+                // or if it's the very first play click.
+                if (timeLeftInStep === currentMeditation.steps[currentStepIndex].duration) {
+                     startStep(); // This restarts the interval correctly
+                } else {
+                    // Just resume the interval
+                    if (timerId) clearInterval(timerId); // Clear any old one just in case
+                    timerId = setInterval(tick, 1000);
+                }
+            }
+        }
+
+        function stopMeditation() {
+            if (timerId) clearInterval(timerId);
+            timerId = null;
+            currentMeditation = null; // Clear current meditation
+            
+            playerScreen.classList.add('fade-out');
+            setTimeout(() => {
+                playerScreen.classList.add('hidden');
+                renderSelectionScreen(); // Go back to selection
+            }, 500);
+        }
+
+        function endMeditation() {
+            if (timerId) clearInterval(timerId);
+            timerId = null;
+            if (synth) {
+                 try {
+                    Tone.start().then(() => {
+                        synth.triggerAttackRelease(currentMeditation.sound || "G4", "4n", Tone.now()); // End sound
+                    });
+                } catch(e) { console.warn("Tone.js end sound play failed:", e); }
+            }
+            
+            playerScreen.classList.add('fade-out');
+            setTimeout(() => {
+                playerScreen.classList.add('hidden');
+                completionScreen.classList.remove('hidden');
+                completionScreen.classList.add('fade-in');
+                appContainer.classList.remove('max-w-2xl'); // Ensure consistent sizing
+                appContainer.classList.add('max-w-md');
+            }, 500);
+        }
+
+        // Event Listeners
+        playPauseButton.addEventListener('click', togglePlayPause);
+        stopButton.addEventListener('click', stopMeditation);
+        finishButton.addEventListener('click', () => {
+            completionScreen.classList.add('fade-out');
+            setTimeout(() => {
+                completionScreen.classList.add('hidden');
+                renderSelectionScreen();
+            }, 500);
+        });
+
+        // Initial Setup
+        document.addEventListener('DOMContentLoaded', () => {
+            playPauseButton.innerHTML = playIcon; // Set initial state for the button
+            renderSelectionScreen();
+        });
+
+    </script>
+</body>
+</html>
